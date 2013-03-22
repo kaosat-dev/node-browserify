@@ -41,6 +41,10 @@ b.on('error', function (err) {
     process.exit(1);
 });
 
+[].concat(argv.extension).filter(Boolean)
+    .forEach(function (e) { b.extension(e); })
+;
+
 [].concat(argv.i).concat(argv.ignore).filter(Boolean)
     .forEach(function (i) { b.ignore(i) })
 ;
