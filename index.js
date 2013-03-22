@@ -34,9 +34,14 @@ function Browserify (files) {
     this._expose = {};
     this._mapped = {};
     this._transforms = [];
+    this._extensions = ['.js'];
     
     [].concat(files).filter(Boolean).forEach(this.add.bind(this));
 }
+
+Browserify.prototype.extension = function(extension) {
+  this._extensions.push(extension);
+};
 
 Browserify.prototype.add = function (file) {
     this.require(file, { entry: true });
@@ -177,6 +182,7 @@ Browserify.prototype.deps = function (opts) {
         return tr;
     }
     
+    opts.extensions = this._extensions;
     var d = mdeps(self.files, opts);
     var tr = d.pipe(through(write));
     d.on('error', tr.emit.bind(tr, 'error'));
@@ -321,5 +327,5 @@ Browserify.prototype._resolve = function (id, parent, cb) {
         if (self._external[file]) return result(file, true);
         
         result(file);
-    });
+    }, {extensions: this._extensions});
 };
