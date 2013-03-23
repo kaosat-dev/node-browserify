@@ -45,16 +45,16 @@ var entries = argv._.concat(argv.e).concat(argv.entry)
 .filter(Boolean).map(function(entry) {
     return path.resolve(process.cwd(), entry);
 });
-var b = browserify(entries);
+
+var extensions = [].concat(argv.extension).filter(Boolean);
+
+var b = browserify(entries, {extensions: extensions});
 
 b.on('error', function (err) {
     console.error(String(err));
     process.exit(1);
 });
 
-[].concat(argv.extension).filter(Boolean)
-    .forEach(function (e) { b.extension(e); })
-;
 
 [].concat(argv.i).concat(argv.ignore).filter(Boolean)
     .forEach(function (i) { b.ignore(i) })

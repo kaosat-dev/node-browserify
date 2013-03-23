@@ -14,8 +14,8 @@ var path = require('path');
 var inherits = require('inherits');
 var EventEmitter = require('events').EventEmitter;
 
-module.exports = function (files) {
-    return new Browserify(files);
+module.exports = function (files, options) {
+    return new Browserify(files, options);
 };
 
 function hash(what) {
@@ -24,7 +24,9 @@ function hash(what) {
 
 inherits(Browserify, EventEmitter);
 
-function Browserify (files) {
+function Browserify (files, options) {
+    options = options || {};
+
     this.files = [];
     this.exports = {};
     this._pending = 0;
@@ -34,15 +36,10 @@ function Browserify (files) {
     this._expose = {};
     this._mapped = {};
     this._transforms = [];
-    this._extensions = ['.js'];
+    this._extensions = ['.js'].concat(options.extensions || []);
     
     [].concat(files).filter(Boolean).forEach(this.add.bind(this));
 }
-
-Browserify.prototype.extension = function(extension) {
-  this._extensions.push(extension);
-  return this;
-};
 
 Browserify.prototype.add = function (file) {
     this.require(file, { entry: true });
@@ -58,7 +55,11 @@ Browserify.prototype.require = function (id, opts) {
     var basedir = opts.basedir || process.cwd();
     var fromfile = basedir + '/_fake.js';
     
-    var params = { filename: fromfile, packageFilter: packageFilter };
+    var params = {
+      filename: fromfile,
+      packageFilter: packageFilter,
+      extensions: this._extensions
+    };
     browserResolve(id, params, function (err, file) {
         if (err) return self.emit('error', err);
         if (!file) return self.emit('error', new Error(
@@ -119,6 +120,7 @@ Browserify.prototype.bundle = function (opts, cb) {
     if (opts.standalone === undefined) opts.standalone = false;
     
     opts.resolve = self._resolve.bind(self);
+    opts.extensions = this._extensions;
     opts.transform = self._transforms;
     opts.transformKey = [ 'browserify', 'transform' ];
     
@@ -175,6 +177,7 @@ Browserify.prototype.transform = function (t) {
 
 Browserify.prototype.deps = function (opts) {
     var self = this;
+
     if (self._pending) {
         var tr = through();
         self.on('_ready', function () {
@@ -183,7 +186,6 @@ Browserify.prototype.deps = function (opts) {
         return tr;
     }
     
-    opts.extensions = this._extensions;
     var d = mdeps(self.files, opts);
     var tr = d.pipe(through(write));
     d.on('error', tr.emit.bind(tr, 'error'));
@@ -328,5 +330,5 @@ Browserify.prototype._resolve = function (id, parent, cb) {
         if (self._external[file]) return result(file, true);
         
         result(file);
-    }, {extensions: this._extensions});
+    });
 };
