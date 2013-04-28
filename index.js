@@ -13,8 +13,8 @@ var path = require('path');
 var inherits = require('inherits');
 var EventEmitter = require('events').EventEmitter;
 
-module.exports = function (files, options) {
-    return new Browserify(files, options);
+module.exports = function (files) {
+    return new Browserify(files);
 };
 
 function hash(what) {
@@ -23,9 +23,7 @@ function hash(what) {
 
 inherits(Browserify, EventEmitter);
 
-function Browserify (files, options) {
-    options = options || {};
-
+function Browserify (files) {
     this.files = [];
     this.exports = {};
     this._pending = 0;
@@ -35,7 +33,7 @@ function Browserify (files, options) {
     this._expose = {};
     this._mapped = {};
     this._transforms = [];
-    this._extensions = ['.js'].concat(options.extensions || []);
+    this._extensions = ['.js'];
     
     [].concat(files).filter(Boolean).forEach(this.add.bind(this));
 }
@@ -43,6 +41,10 @@ function Browserify (files, options) {
 Browserify.prototype.add = function (file) {
     this.require(file, { entry: true });
     return this;
+};
+
+Browserify.prototype.extension = function (extension) {
+	this._extensions.push(extension);
 };
 
 Browserify.prototype.require = function (id, opts) {
