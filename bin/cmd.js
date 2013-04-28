@@ -46,15 +46,17 @@ var entries = argv._.concat(argv.e).concat(argv.entry)
     return path.resolve(process.cwd(), entry);
 });
 
-var extensions = [].concat(argv.extension).filter(Boolean);
 
-var b = browserify(entries, {extensions: extensions});
+var b = browserify(entries);
 
 b.on('error', function (err) {
     console.error(String(err));
     process.exit(1);
 });
 
+[].concat(argv.extension).filter(Boolean)
+		.forEach(function (e) { b.extension(e) })
+;
 
 [].concat(argv.i).concat(argv.ignore).filter(Boolean)
     .forEach(function (i) { b.ignore(i) })
