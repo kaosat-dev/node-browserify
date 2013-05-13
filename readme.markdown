@@ -1,3 +1,7 @@
+# FORK
+
+This is a fork of `browserify` to support `.coffee` extension as first class (https://github.com/substack/node-browserify/pull/336).
+
 # browserify
 
 `require('modules')` in the browser
@@ -141,19 +145,19 @@ Standard Options:
                    Optionally use a colon separator to set the target.
 
       --entry, -e  An entry point of your app
-  
+
      --ignore, -i  Omit a file from the output bundle.
 
    --external, -x  Reference a file from another bundle.
-  
+
   --transform, -t  Use a transform module on top-level files.
- 
+
     --command, -c  Use a transform command on top-level files.
-   
+
   --standalone -s  Generate a UMD bundle for the supplied export name.
                    This bundle works with other module systems and sets the name
                    given as a window global if no module system is found.
-  
+
        --debug -d  Enable source maps that allow you to debug your files
                    separately.
 
@@ -171,10 +175,10 @@ Advanced Options:
 
     Skip detection and always insert definitions for process, global,
     __filename, and __dirname.
-                  
+
     benefit: faster builds
     cost: extra bytes
- 
+
   --detect-globals, --dg            [default: true]
 
     Detect the presence of process, global, __filename, and __dirname and define
@@ -245,7 +249,7 @@ Make `file` available from outside the bundle with `require(file)`.
 
 The `file` param is anything that can be resolved by `require.resolve()`.
 
-Use the `expose` property of opts to specify a custom dependency name. 
+Use the `expose` property of opts to specify a custom dependency name.
 `require('./vendor/angular/angular.js', {expose: 'angular'})` enables `require('angular')`
 
 ## b.bundle(opts, cb)
@@ -310,7 +314,7 @@ var through = require('through');
 b.transform(function (file) {
     var data = '';
     return through(write, end);
-    
+
     function write (buf) { data += buf }
     function end () {
         this.queue(coffee.compile(data));
@@ -378,7 +382,7 @@ calls with file contents (also supports `ruglify` and any other `rfile` derivati
 
 * [liveify](https://github.com/quarterto/liveify) - compile livescript files to javascript automatically
 
-* [es6ify](https://github.com/thlorenz/es6ify) - compile ES6 files to 
+* [es6ify](https://github.com/thlorenz/es6ify) - compile ES6 files to
 ES5 javascript automatically
 
 * [turn](https://github.com/juliangruber/turn) - minimal modules for a hypothetical es6 with lua's return
