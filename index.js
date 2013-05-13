@@ -7,6 +7,7 @@ var checkSyntax = require('syntax-error');
 var mdeps = require('module-deps');
 var browserPack = require('browser-pack');
 var browserResolve = require('browser-resolve');
+var browserBuiltins = require('browser-builtins');
 var insertGlobals = require('insert-module-globals');
 var umd = require('umd');
 
@@ -34,7 +35,7 @@ function Browserify (files) {
     this._expose = {};
     this._mapped = {};
     this._transforms = [];
-    
+
     [].concat(files).filter(Boolean).forEach(this.add.bind(this));
 }
 
@@ -46,22 +47,22 @@ Browserify.prototype.add = function (file) {
 Browserify.prototype.require = function (id, opts) {
     var self = this;
     if (opts === undefined) opts = { expose: id };
-    
+
     self._pending ++;
-    
+
     var basedir = opts.basedir || process.cwd();
     var fromfile = basedir + '/_fake.js';
-    
-    var params = { filename: fromfile, packageFilter: packageFilter };
+
+    var params = { filename: fromfile, packageFilter: packageFilter, modules: browserBuiltins };
     browserResolve(id, params, function (err, file) {
         if (err) return self.emit('error', err);
         if (!file) return self.emit('error', new Error(
             'module ' + JSON.stringify(id) + ' not found in require()'
         ));
-        
+
         if (opts.expose) {
             self.exports[file] = hash(file);
-            
+
             if (typeof opts.expose === 'string') {
                 self._expose[file] = opts.expose;
                 self._mapped[opts.expose] = file;
@@ -74,9 +75,9 @@ Browserify.prototype.require = function (id, opts) {
         else {
             self.files.push(file);
         }
-        
+
         if (opts.entry) self._entries.push(file);
-        
+
         if (--self._pending === 0) self.emit('_ready');
     });
 
@@ -111,17 +112,18 @@ Browserify.prototype.bundle = function (opts, cb) {
     if (opts.detectGlobals === undefined) opts.detectGlobals = true;
     if (opts.ignoreMissing === undefined) opts.ignoreMissing = false;
     if (opts.standalone === undefined) opts.standalone = false;
-    
+
     opts.resolve = self._resolve.bind(self);
     opts.transform = self._transforms;
     opts.transformKey = [ 'browserify', 'transform' ];
-    
+    opts.modules = browserBuiltins;
+
     var parentFilter = opts.packageFilter;
     opts.packageFilter = function (pkg) {
         if (parentFilter) pkg = parentFilter(pkg);
         return packageFilter(pkg);
     };
-    
+
     if (self._pending) {
         var tr = through();
         self.on('_ready', function () {
@@ -131,13 +133,13 @@ Browserify.prototype.bundle = function (opts, cb) {
         });
         return tr;
     }
-    
+
     if (opts.standalone && self._entries.length !== 1) {
         process.nextTick(function () {
             p.emit('error', 'standalone only works with a single entry point');
         });
     }
-    
+
     var d = self.deps(opts);
     var g = opts.detectGlobals || opts.insertGlobals
         ? insertGlobals(self.files, {
@@ -151,11 +153,11 @@ Browserify.prototype.bundle = function (opts, cb) {
         p.on('error', cb);
         p.pipe(concatStream(cb));
     }
-    
+
     d.on('error', p.emit.bind(p, 'error'));
     g.on('error', p.emit.bind(p, 'error'));
     d.pipe(g).pipe(p);
-    
+
     return p;
 };
 
@@ -176,17 +178,17 @@ Browserify.prototype.deps = function (opts) {
         });
         return tr;
     }
-    
+
     var d = mdeps(self.files, opts);
     var tr = d.pipe(through(write));
     d.on('error', tr.emit.bind(tr, 'error'));
     return tr;
-    
+
     function write (row) {
         if (row.id === emptyModulePath) {
             row.source = '';
         }
-        
+
         if (self._expose[row.id]) {
             this.queue({
                 exposed: self._expose[row.id],
@@ -194,18 +196,18 @@ Browserify.prototype.deps = function (opts) {
                 source: 'module.exports=require(\'' + hash(row.id) + '\');'
             });
         }
-        
+
         if (self.exports[row.id]) row.exposed = self.exports[row.id];
 
         // skip adding this file if it is external
         if (self._external[row.id]) {
             return;
         }
-       
+
         if (/\.json$/.test(row.id)) {
             row.source = 'module.exports=' + row.source;
         }
-        
+
         var ix = self._entries.indexOf(row.id);
         row.entry = ix >= 0;
         if (ix >= 0) row.order = ix;
@@ -224,8 +226,8 @@ Browserify.prototype.pack = function (debug, standalone) {
     var input = through(function (row) {
         var ix;
 
-        if (debug) { 
-            row.sourceRoot = 'file://localhost'; 
+        if (debug) {
+            row.sourceRoot = 'file://localhost';
             row.sourceFile = row.id;
         }
 
@@ -236,11 +238,11 @@ Browserify.prototype.pack = function (debug, standalone) {
             ix = ids[row.id] !== undefined ? ids[row.id] : idIndex++;
         }
         if (ids[row.id] === undefined) ids[row.id] = ix;
-        
+
         if (/^#!/.test(row.source)) row.source = '//' + row.source;
         var err = checkSyntax(row.source, row.id);
         if (err) return this.emit('error', err);
-        
+
         row.id = ix;
         if (row.entry) mainModule = mainModule || ix;
         row.deps = Object.keys(row.deps).reduce(function (acc, key) {
@@ -256,14 +258,14 @@ Browserify.prototype.pack = function (debug, standalone) {
             acc[key] = ids[file];
             return acc;
         }, {});
-        
+
         this.queue(row);
     });
-    
+
     var first = true;
     var hasExports = Object.keys(self.exports).length;
     var output = through(write, end);
-    
+
     function writePrelude () {
         if (!first) return;
         if (standalone) {
@@ -272,17 +274,17 @@ Browserify.prototype.pack = function (debug, standalone) {
         if (!hasExports) return output.queue(';');
         output.queue('require=');
     }
-    
+
     input.pipe(packer);
     packer.pipe(output);
     return duplexer(input, output);
-    
+
     function write (buf) {
         if (first) writePrelude();
         first = false;
         this.queue(buf);
     }
-    
+
     function end () {
         if (first) writePrelude();
         if (standalone) {
@@ -309,17 +311,17 @@ Browserify.prototype._resolve = function (id, parent, cb) {
         cb(null, file, x);
     };
     if (self._mapped[id]) return result(self._mapped[id]);
-    
+
     return browserResolve(id, parent, function(err, file) {
         if (err) return cb(err);
         if (!file) return cb(new Error('module '
             + JSON.stringify(id) + ' not found from '
             + JSON.stringify(parent.filename)
         ));
-        
+
         if (self._ignore[file]) return cb(null, emptyModulePath);
         if (self._external[file]) return result(file, true);
-        
+
         result(file);
     });
 };
