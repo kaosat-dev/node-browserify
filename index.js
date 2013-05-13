@@ -35,6 +35,7 @@ function Browserify (files) {
     this._expose = {};
     this._mapped = {};
     this._transforms = [];
+    this._extensions = ['.js'];
 
     [].concat(files).filter(Boolean).forEach(this.add.bind(this));
 }
@@ -42,6 +43,10 @@ function Browserify (files) {
 Browserify.prototype.add = function (file) {
     this.require(file, { entry: true });
     return this;
+};
+
+Browserify.prototype.extension = function (extension) {
+	this._extensions.push(extension);
 };
 
 Browserify.prototype.require = function (id, opts) {
@@ -52,8 +57,12 @@ Browserify.prototype.require = function (id, opts) {
 
     var basedir = opts.basedir || process.cwd();
     var fromfile = basedir + '/_fake.js';
-
-    var params = { filename: fromfile, packageFilter: packageFilter, modules: browserBuiltins };
+    var params = {
+      filename: fromfile,
+      packageFilter: packageFilter,
+      extensions: this._extensions,
+      modules: browserBuiltins
+    };
     browserResolve(id, params, function (err, file) {
         if (err) return self.emit('error', err);
         if (!file) return self.emit('error', new Error(
@@ -114,6 +123,7 @@ Browserify.prototype.bundle = function (opts, cb) {
     if (opts.standalone === undefined) opts.standalone = false;
 
     opts.resolve = self._resolve.bind(self);
+    opts.extensions = this._extensions;
     opts.transform = self._transforms;
     opts.transformKey = [ 'browserify', 'transform' ];
     opts.modules = browserBuiltins;
@@ -143,7 +153,6 @@ Browserify.prototype.bundle = function (opts, cb) {
     var d = self.deps(opts);
     var g = opts.detectGlobals || opts.insertGlobals
         ? insertGlobals(self.files, {
-            resolve: self._resolve.bind(self),
             always: opts.insertGlobals
         })
         : through()
@@ -191,6 +200,7 @@ Browserify.prototype.deps = function (opts) {
 
         if (self._expose[row.id]) {
             this.queue({
+                id: row.id,
                 exposed: self._expose[row.id],
                 deps: {},
                 source: 'module.exports=require(\'' + hash(row.id) + '\');'

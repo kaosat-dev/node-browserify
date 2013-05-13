@@ -152,6 +152,10 @@ Standard Options:
 
   --transform, -t  Use a transform module on top-level files.
 
+  --extension      Consider files with specified extension as modules.
+
+  --command, -c    Use a transform command on top-level files.
+
     --command, -c  Use a transform command on top-level files.
 
   --standalone -s  Generate a UMD bundle for the supplied export name.
@@ -336,6 +340,17 @@ module:
 $ npm install coffeeify
 $ browserify -t coffeeify main.coffee > bundle.js
 ```
+
+## b.extension(extension)
+
+Instructs browserify to consider files with specified `extension` as source code
+for modules even if those modules' names were passed to `require()` calls
+without an extension.
+
+By default browserify considers only `\*.js` files in such cases.
+
+Note, that if files do not contain javascript source code then you also need to
+specify a corresponding transform for them.
 
 # package.json
 
