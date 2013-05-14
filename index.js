@@ -57,6 +57,7 @@ Browserify.prototype.require = function (id, opts) {
 
     var basedir = opts.basedir || process.cwd();
     var fromfile = basedir + '/_fake.js';
+
     var params = {
       filename: fromfile,
       packageFilter: packageFilter,
@@ -180,6 +181,7 @@ Browserify.prototype.transform = function (t) {
 
 Browserify.prototype.deps = function (opts) {
     var self = this;
+
     if (self._pending) {
         var tr = through();
         self.on('_ready', function () {

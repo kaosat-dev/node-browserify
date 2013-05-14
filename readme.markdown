@@ -154,8 +154,6 @@ Standard Options:
 
   --extension      Consider files with specified extension as modules.
 
-  --command, -c    Use a transform command on top-level files.
-
     --command, -c  Use a transform command on top-level files.
 
   --standalone -s  Generate a UMD bundle for the supplied export name.
