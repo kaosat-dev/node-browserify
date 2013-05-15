@@ -4,9 +4,9 @@ This is a fork of `browserify` to support `.coffee` extension as first class (ht
 
 ## Installation
 
-    npm install git://github.com/alexgorbatchev/module-deps.git
-    npm install git://github.com/alexgorbatchev/node-browser-resolve.git
-    npm install git://github.com/alexgorbatchev/node-browserify.git
+    npm install git://github.com/alexgorbatchev/module-deps.git \
+                git://github.com/alexgorbatchev/node-browser-resolve.git \
+                git://github.com/alexgorbatchev/node-browserify.git
 
 # browserify
 
