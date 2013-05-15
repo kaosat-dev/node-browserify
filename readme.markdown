@@ -8,6 +8,11 @@ This is a fork of `browserify` to support `.coffee` extension as first class (ht
                 git://github.com/alexgorbatchev/node-browser-resolve.git \
                 git://github.com/alexgorbatchev/node-browserify.git
 
+Here's an example how to enable requiring `.coffee` files without extensions:
+
+    bundle = browserify()
+    bundle.extension '.coffee'
+
 # browserify
 
 `require('modules')` in the browser
