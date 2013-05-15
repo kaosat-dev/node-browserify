@@ -2,6 +2,12 @@
 
 This is a fork of `browserify` to support `.coffee` extension as first class (https://github.com/substack/node-browserify/pull/336).
 
+## Installation
+
+    npm install git://github.com/alexgorbatchev/module-deps.git
+    npm install git://github.com/alexgorbatchev/node-browser-resolve.git
+    npm install git://github.com/alexgorbatchev/node-browserify.git
+
 # browserify
 
 `require('modules')` in the browser
