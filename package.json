@@ -20,8 +20,8 @@
         "javascript"
     ],
     "dependencies": {
-        "browser-resolve":"1.0.1-alexgorbatchev",
-        "module-deps":"0.7.1-alexgorbatchev",
+        "browser-resolve":"1.1.0",
+        "module-deps":"1.0.1",
         "browser-builtins": "~1.0.1",
         "browser-pack": "~0.8.0",
         "shell-quote": "~0.0.1",
